@@ -204,9 +204,12 @@ switch (command) {
     case 'read':
         process.exit(cmdRead(rest));
         break;
-    case 'tail':
-        process.exit(cmdTail(rest));
+    case 'tail': {
+        const code = cmdTail(rest);
+        if (code !== EXIT_OK) process.exit(code);
+        // else: keep process alive — watcher holds the event loop
         break;
+    }
     case 'help':
     case '--help':
     case '-h':
