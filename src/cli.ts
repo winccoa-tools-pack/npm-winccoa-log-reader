@@ -10,7 +10,7 @@
 
 import { readLog } from './reader.js';
 import { LogWatcher } from './watcher.js';
-import type { LogReadOptions, LogSeverity, LogWatcherOptions } from './types.js';
+import type { LogEvent, LogReadOptions, LogSeverity, LogWatcherOptions } from './types.js';
 
 const EXIT_OK = 0;
 const EXIT_USAGE = 1;
@@ -23,6 +23,7 @@ interface CommonArgs {
     filterSeverity?: LogSeverity[];
     filterScope?: string[];
     pretty: boolean;
+    plain: boolean;
 }
 
 interface ReadArgs extends CommonArgs {
@@ -48,14 +49,21 @@ function printUsage(): void {
             '  --since <timestamp>      Only events >= timestamp (YYYY.MM.DD HH:mm:ss.SSS)',
             '  --last-n <n>             Return last N events only  (read only)',
             '  --pretty                 Pretty-print JSON output',
+            '  --plain                  Output raw log lines (like WinCC OA console)',
             '',
             'Examples:',
             '  winccoa-log read  /opt/winccoa/log/PVSS_II.log --severity WARNING,FATAL',
-            '  winccoa-log read  /opt/winccoa/log/PVSS_II.log --last-n 50 --pretty',
+            '  winccoa-log read  /opt/winccoa/log/PVSS_II.log --last-n 50 --plain',
+            '  winccoa-log tail  /opt/winccoa/log/PVSS_II.log --severity FATAL,SEVERE --plain',
             '  winccoa-log tail  /opt/winccoa/log/PVSS_II.log --severity FATAL,SEVERE',
             '',
         ].join('\n'),
     );
+}
+
+/** Output a single event as raw log lines (identical to the original PVSS log). */
+function printPlain(event: LogEvent): void {
+    process.stdout.write(event.rawLines.join('\n') + '\n');
 }
 
 function parseSeverities(raw: string): LogSeverity[] {
@@ -72,7 +80,7 @@ function parseCommonArgs(argv: string[]): CommonArgs | null {
         return null;
     }
 
-    const args: CommonArgs = { filePath: argv[0], pretty: false };
+    const args: CommonArgs = { filePath: argv[0], pretty: false, plain: false };
     let i = 1;
 
     while (i < argv.length) {
@@ -85,6 +93,9 @@ function parseCommonArgs(argv: string[]): CommonArgs | null {
                 break;
             case '--pretty':
                 args.pretty = true;
+                break;
+            case '--plain':
+                args.plain = true;
                 break;
             default:
                 process.stderr.write(`Warning: unknown option ${argv[i]}\n`);
@@ -101,7 +112,7 @@ function parseReadArgs(argv: string[]): ReadArgs | null {
         return null;
     }
 
-    const args: ReadArgs = { filePath: argv[0], pretty: false };
+    const args: ReadArgs = { filePath: argv[0], pretty: false, plain: false };
     let i = 1;
 
     while (i < argv.length) {
@@ -122,6 +133,9 @@ function parseReadArgs(argv: string[]): ReadArgs | null {
             }
             case '--pretty':
                 args.pretty = true;
+                break;
+            case '--plain':
+                args.plain = true;
                 break;
             default:
                 process.stderr.write(`Warning: unknown option ${argv[i]}\n`);
@@ -153,9 +167,15 @@ function cmdRead(argv: string[]): number {
         return EXIT_ERROR;
     }
 
-    const json = args.pretty ? JSON.stringify(result, null, 2) : JSON.stringify(result);
+    if (args.plain) {
+        for (const event of result.events) {
+            printPlain(event);
+        }
+    } else {
+        const json = args.pretty ? JSON.stringify(result, null, 2) : JSON.stringify(result);
+        process.stdout.write(json + '\n');
+    }
 
-    process.stdout.write(json + '\n');
     return EXIT_OK;
 }
 
@@ -171,9 +191,13 @@ function cmdTail(argv: string[]): number {
 
     const watcher = new LogWatcher(opts);
 
-    watcher.on('event', (event) => {
-        const json = args.pretty ? JSON.stringify(event, null, 2) : JSON.stringify(event);
-        process.stdout.write(json + '\n');
+    watcher.on('event', (event: LogEvent) => {
+        if (args.plain) {
+            printPlain(event);
+        } else {
+            const json = args.pretty ? JSON.stringify(event, null, 2) : JSON.stringify(event);
+            process.stdout.write(json + '\n');
+        }
     });
 
     watcher.on('error', (err: Error) => {
