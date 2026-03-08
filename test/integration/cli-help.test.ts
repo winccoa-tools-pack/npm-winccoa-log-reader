@@ -1,28 +1,55 @@
+/**
+ * Integration test: CLI --help / usage output.
+ */
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-test('CLI: "--help" prints usage and exits with code 1', () => {
-    const repoRoot = path.resolve(__dirname, '..', '..');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..', '..');
 
-    // Prefer the built CJS CLI (matches what users run via the npm bin entry).
-    // Fall back to TS source so `npm run test:integration` can be run without a build.
+function getCli(): (args: string[]) => string[] {
     const distCli = path.join(repoRoot, 'dist', 'cjs', 'cli.js');
     const srcCli = path.join(repoRoot, 'src', 'cli.ts');
-
     const cliPath = fs.existsSync(distCli) ? distCli : srcCli;
-    const nodeArgs =
-        cliPath === srcCli
-            ? ['--import', 'tsx', cliPath, '--help']
-            : [cliPath, '--help'];
+    return (args: string[]) =>
+        cliPath.endsWith('.ts')
+            ? ['--import', 'tsx', cliPath, ...args]
+            : [cliPath, ...args];
+}
 
-    const result = spawnSync(process.execPath, nodeArgs, {
+test('CLI: help command exits 0 and prints winccoa-log usage', () => {
+    const nodeArgs = getCli();
+    const result = spawnSync(process.execPath, nodeArgs(['help']), {
         cwd: repoRoot,
         encoding: 'utf8',
     });
+    assert.equal(result.status, 0);
+    assert.match(result.stderr ?? '', /winccoa-log/);
+    assert.match(result.stderr ?? '', /read|tail/);
+});
 
-    assert.equal(result.status, 1);
-    assert.match(result.stderr ?? '', /Usage: winccoa-pnl-xml/);
+test('CLI: -h flag also shows help', () => {
+    const nodeArgs = getCli();
+    const result = spawnSync(process.execPath, nodeArgs(['-h']), {
+        cwd: repoRoot,
+        encoding: 'utf8',
+    });
+    assert.equal(result.status, 0);
+    assert.match(result.stderr ?? '', /Usage/i);
+});
+
+test('CLI: --help flag also shows help', () => {
+    const nodeArgs = getCli();
+    const result = spawnSync(process.execPath, nodeArgs(['--help']), {
+        cwd: repoRoot,
+        encoding: 'utf8',
+    });
+    assert.equal(result.status, 0);
+    assert.match(result.stderr ?? '', /Usage/i);
 });

@@ -1,0 +1,7 @@
+[general]
+pvss_path = "<WinCC_OA_PATH>"
+proj_path = "<PROJECT_PATH>"
+proj_version = "<WinCC_OA_VERSION>"
+useNGA = 1
+useSQLite = 1
+langs = "en_US.utf8"

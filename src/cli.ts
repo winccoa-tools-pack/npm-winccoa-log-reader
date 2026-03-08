@@ -1,202 +1,222 @@
 #!/usr/bin/env node
-
-import { PnlXmlConverter } from './converter';
-import { ConversionDirection } from './types';
-import type { ConversionOptions } from './types';
-
 /**
- * CLI exit codes.
+ * CLI entry point for @winccoa-tools-pack/npm-winccoa-log.
+ *
+ * Commands:
+ *   winccoa-log read  <file> [options]   Read + filter a log file (JSON output)
+ *   winccoa-log tail  <file> [options]   Stream new events as NDJSON
+ *   winccoa-log help                     Show help
  */
+
+import { readLog } from './reader.js';
+import { LogWatcher } from './watcher.js';
+import type { LogReadOptions, LogSeverity, LogWatcherOptions } from './types.js';
+
 const EXIT_OK = 0;
 const EXIT_USAGE = 1;
-const EXIT_CONVERSION_FAILED = 2;
+const EXIT_ERROR = 2;
 
-/**
- * Print usage information to stderr.
- */
+// ── Argument parsing ─────────────────────────────────────────────────────────
+
+interface CommonArgs {
+    filePath: string;
+    filterSeverity?: LogSeverity[];
+    filterScope?: string[];
+    pretty: boolean;
+}
+
+interface ReadArgs extends CommonArgs {
+    sinceTimestamp?: string;
+    lastN?: number;
+}
+
 function printUsage(): void {
-    const bin = 'winccoa-pnl-xml';
     process.stderr.write(
         [
             '',
-            `Usage: ${bin} <command> [options]`,
+            'Usage: winccoa-log <command> [options]',
             '',
             'Commands:',
-            '  convert pnl-to-xml <path>   Convert .pnl panel(s) to XML',
-            '  convert xml-to-pnl <path>   Convert XML file(s) back to .pnl',
+            '  read  <file>   Read + filter a log file, print JSON to stdout',
+            '  tail  <file>   Watch a log file, stream NDJSON to stdout',
+            '  help           Show this help',
             '',
             'Options:',
-            '  -v, --version <ver>   WinCC OA version (e.g. 3.20)  [required]',
-            '  -c, --config <path>   WinCC OA project config file',
-            '  -o, --overwrite       Overwrite existing output files',
-            '  -t, --timeout <ms>    Process timeout in milliseconds (default: 60000)',
-            '  -h, --help            Show this help message',
+            '  --severity <level,...>   Comma-separated severities to include',
+            '                           (INFO,WARNING,FATAL,SEVERE,DEBUG,OTHER)',
+            '  --scope <scope,...>      Comma-separated scopes (e.g. SYS,CTRL)',
+            '  --since <timestamp>      Only events >= timestamp (YYYY.MM.DD HH:mm:ss.SSS)',
+            '  --last-n <n>             Return last N events only  (read only)',
+            '  --pretty                 Pretty-print JSON output',
             '',
             'Examples:',
-            `  ${bin} convert pnl-to-xml panels/myPanel.pnl -v 3.20`,
-            `  ${bin} convert xml-to-pnl panels/myPanel.xml -v 3.20 -o`,
-            `  ${bin} convert pnl-to-xml panels/ -v 3.20 --timeout 120000`,
+            '  winccoa-log read  /opt/winccoa/log/PVSS_II.log --severity WARNING,FATAL',
+            '  winccoa-log read  /opt/winccoa/log/PVSS_II.log --last-n 50 --pretty',
+            '  winccoa-log tail  /opt/winccoa/log/PVSS_II.log --severity FATAL,SEVERE',
             '',
         ].join('\n'),
     );
 }
 
-/**
- * Minimal argument parser.
- * Returns the parsed CLI options or null when the input is invalid.
- */
-interface ParsedArgs {
-    direction: ConversionDirection;
-    inputPath: string;
-    version: string;
-    configPath?: string;
-    overwrite: boolean;
-    timeout?: number;
+function parseSeverities(raw: string): LogSeverity[] {
+    const valid: LogSeverity[] = ['INFO', 'WARNING', 'FATAL', 'SEVERE', 'DEBUG', 'OTHER'];
+    return raw
+        .split(',')
+        .map((s) => s.trim().toUpperCase() as LogSeverity)
+        .filter((s) => valid.includes(s));
 }
 
-function parseArgs(argv: string[]): ParsedArgs | null {
-    // Strip node + script path
-    const args = argv.slice(2);
-
-    if (args.length === 0 || args.includes('-h') || args.includes('--help')) {
+function parseCommonArgs(argv: string[]): CommonArgs | null {
+    if (argv.length < 1) {
+        process.stderr.write('Error: file path is required\n');
         return null;
     }
 
-    // Expect: convert <pnl-to-xml|xml-to-pnl> <path> [options]
-    if (args[0] !== 'convert') {
-        process.stderr.write(`Error: Unknown command "${args[0]}". Expected "convert".\n`);
-        return null;
-    }
+    const args: CommonArgs = { filePath: argv[0], pretty: false };
+    let i = 1;
 
-    const subCommand = args[1];
-    let direction: ConversionDirection;
-
-    if (subCommand === 'pnl-to-xml') {
-        direction = ConversionDirection.PNL_TO_XML;
-    } else if (subCommand === 'xml-to-pnl') {
-        direction = ConversionDirection.XML_TO_PNL;
-    } else {
-        process.stderr.write(
-            `Error: Unknown sub-command "${subCommand}". Expected "pnl-to-xml" or "xml-to-pnl".\n`,
-        );
-        return null;
-    }
-
-    const inputPath = args[2];
-    if (!inputPath || inputPath.startsWith('-')) {
-        process.stderr.write('Error: Missing input path.\n');
-        return null;
-    }
-
-    let version = '';
-    let configPath: string | undefined;
-    let overwrite = false;
-    let timeout: number | undefined;
-
-    // Parse remaining flags
-    let i = 3;
-    while (i < args.length) {
-        const flag = args[i];
-        switch (flag) {
-            case '-v':
-            case '--version':
-                version = args[++i] ?? '';
+    while (i < argv.length) {
+        switch (argv[i]) {
+            case '--severity':
+                args.filterSeverity = parseSeverities(argv[++i] ?? '');
                 break;
-            case '-c':
-            case '--config':
-                configPath = args[++i] ?? '';
+            case '--scope':
+                args.filterScope = (argv[++i] ?? '').split(',').map((s) => s.trim());
                 break;
-            case '-o':
-            case '--overwrite':
-                overwrite = true;
+            case '--pretty':
+                args.pretty = true;
                 break;
-            case '-t':
-            case '--timeout': {
-                const raw = args[++i] ?? '';
-                const parsed = Number(raw);
-                if (isNaN(parsed) || parsed <= 0) {
-                    process.stderr.write(`Error: Invalid timeout value "${raw}".\n`);
-                    return null;
-                }
-                timeout = parsed;
-                break;
-            }
             default:
-                process.stderr.write(`Error: Unknown option "${flag}".\n`);
-                return null;
+                process.stderr.write(`Warning: unknown option ${argv[i]}\n`);
         }
         i++;
     }
 
-    if (!version) {
-        process.stderr.write('Error: WinCC OA version is required (-v / --version).\n');
+    return args;
+}
+
+function parseReadArgs(argv: string[]): ReadArgs | null {
+    if (argv.length < 1) {
+        process.stderr.write('Error: file path is required\n');
         return null;
     }
 
-    return { direction, inputPath, version, configPath, overwrite, timeout };
-}
+    const args: ReadArgs = { filePath: argv[0], pretty: false };
+    let i = 1;
 
-/**
- * Main CLI entry point.
- */
-async function main(): Promise<void> {
-    const parsed = parseArgs(process.argv);
-
-    if (!parsed) {
-        printUsage();
-        process.exitCode = EXIT_USAGE;
-        return;
+    while (i < argv.length) {
+        switch (argv[i]) {
+            case '--severity':
+                args.filterSeverity = parseSeverities(argv[++i] ?? '');
+                break;
+            case '--scope':
+                args.filterScope = (argv[++i] ?? '').split(',').map((s) => s.trim());
+                break;
+            case '--since':
+                args.sinceTimestamp = argv[++i];
+                break;
+            case '--last-n': {
+                const n = parseInt(argv[++i] ?? '0', 10);
+                if (!isNaN(n) && n > 0) args.lastN = n;
+                break;
+            }
+            case '--pretty':
+                args.pretty = true;
+                break;
+            default:
+                process.stderr.write(`Warning: unknown option ${argv[i]}\n`);
+        }
+        i++;
     }
 
-    const options: ConversionOptions = {
-        version: parsed.version,
-        inputPath: parsed.inputPath,
-        configPath: parsed.configPath,
-        overwrite: parsed.overwrite,
-        timeout: parsed.timeout,
+    return args;
+}
+
+// ── Commands ─────────────────────────────────────────────────────────────────
+
+function cmdRead(argv: string[]): number {
+    const args = parseReadArgs(argv);
+    if (!args) return EXIT_USAGE;
+
+    const opts: LogReadOptions = {
+        filterSeverity: args.filterSeverity,
+        filterScope: args.filterScope,
+        sinceTimestamp: args.sinceTimestamp,
+        lastN: args.lastN,
     };
 
-    const directionLabel =
-        parsed.direction === ConversionDirection.PNL_TO_XML ? 'PNL → XML' : 'XML → PNL';
-
-    process.stderr.write(`Converting ${directionLabel}: ${parsed.inputPath}\n`);
-
+    let result;
     try {
-        const converter = new PnlXmlConverter();
-        const result = await converter.convert(options, parsed.direction);
-
-        if (result.stdout) {
-            process.stdout.write(result.stdout);
-        }
-        if (result.stderr) {
-            process.stderr.write(result.stderr);
-        }
-
-        if (result.success) {
-            process.stderr.write('Conversion completed successfully.\n');
-            process.exitCode = EXIT_OK;
-        } else {
-            process.stderr.write(`Conversion failed with exit code ${result.exitCode}.\n`);
-            process.exitCode = EXIT_CONVERSION_FAILED;
-        }
+        result = readLog(args.filePath, opts);
     } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        process.stderr.write(`Error: ${message}\n`);
-        process.exitCode = EXIT_CONVERSION_FAILED;
+        process.stderr.write(`Error: ${(err as Error).message}\n`);
+        return EXIT_ERROR;
     }
+
+    const json = args.pretty ? JSON.stringify(result, null, 2) : JSON.stringify(result);
+
+    process.stdout.write(json + '\n');
+    return EXIT_OK;
 }
 
-// Auto-run only when invoked directly (not when imported for testing)
-const isDirectRun =
-    process.argv[1] &&
-    (process.argv[1].endsWith('cli.js') ||
-        process.argv[1].endsWith('cli.ts') ||
-        process.argv[1].endsWith('cli.cjs') ||
-        process.argv[1].endsWith('cli.mjs'));
+function cmdTail(argv: string[]): number {
+    const args = parseCommonArgs(argv);
+    if (!args) return EXIT_USAGE;
 
-if (isDirectRun) {
-    main();
+    const opts: LogWatcherOptions = {
+        files: [args.filePath],
+        filterSeverity: args.filterSeverity,
+        filterScope: args.filterScope,
+    };
+
+    const watcher = new LogWatcher(opts);
+
+    watcher.on('event', (event) => {
+        const json = args.pretty ? JSON.stringify(event, null, 2) : JSON.stringify(event);
+        process.stdout.write(json + '\n');
+    });
+
+    watcher.on('error', (err: Error) => {
+        process.stderr.write(`Watcher error: ${err.message}\n`);
+    });
+
+    watcher.start();
+
+    // Keep alive — Ctrl-C or SIGTERM to exit
+    process.on('SIGINT', () => {
+        watcher.stop();
+        process.exit(EXIT_OK);
+    });
+
+    process.on('SIGTERM', () => {
+        watcher.stop();
+        process.exit(EXIT_OK);
+    });
+
+    return EXIT_OK; // process stays alive via watcher
 }
 
-// Export for testing
-export { parseArgs, printUsage, main };
+// ── Main ─────────────────────────────────────────────────────────────────────
+
+const [, , command = '', ...rest] = process.argv;
+
+switch (command) {
+    case 'read':
+        process.exit(cmdRead(rest));
+        break;
+    case 'tail':
+        process.exit(cmdTail(rest));
+        break;
+    case 'help':
+    case '--help':
+    case '-h':
+        printUsage();
+        process.exit(EXIT_OK);
+        break;
+    default:
+        if (command) {
+            process.stderr.write(`Unknown command: ${command}\n`);
+        }
+        printUsage();
+        process.exit(EXIT_USAGE);
+}
