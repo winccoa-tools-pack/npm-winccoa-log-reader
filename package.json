@@ -1,7 +1,7 @@
 {
-  "name": "@winccoa-tools-pack/npm-winccoa-template",
+  "name": "@winccoa-tools-pack/npm-winccoa-log-reader",
   "version": "0.2.0",
-  "description": "Template for WinCC OA npm packages",
+  "description": "WinCC OA Log Reader – parse and analyze WinCC OA log files",
   "author": "winccoa-tools-pack",
   "license": "MIT",
   "main": "dist/cjs/index.js",
