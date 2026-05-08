@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Documentation
+
+- Align README CLI/API examples with actual tool behavior (in-place conversion, required version).
+
 ## [0.2.0] - 2026-03-03
 
 ### Changed
@@ -22,12 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump actions/upload-artifact from 5 to 6
 - add setup-gitflow and gitflow-action workflows
 - Add Buy Me a Coffee funding option
-
-## [Unreleased]
-
-### Documentation
-
-- Align README CLI/API examples with actual tool behavior (in-place conversion, required version).
 
 ## [0.1.0] - 2026-02-28
 

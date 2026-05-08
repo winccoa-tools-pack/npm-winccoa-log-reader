@@ -1,10 +1,9 @@
----
-Minimal starter template for creating shared WinCC OA NPM libraries
-THIS IS AN EXAMPLE README
----
+> **Note:** Despite the repository folder name, this package currently contains the
+> **template example** code (PNL ⇄ XML converter). A real "log reader" implementation
+> is not present here yet.
 
 
-# WinCC OA UI PNL/XML Converter
+# WinCC OA UI PNL/XML Converter (Template Example)
 
 A lightweight developer tool for SIMATIC WinCC Open Architecture projects, providing reliable PNL ⇄ XML transformations for UI panels.
 This package is part of the modular winccoa-tools-pack ecosystem, which delivers modern development tooling,
