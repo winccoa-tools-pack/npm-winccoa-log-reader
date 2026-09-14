@@ -24,6 +24,3 @@ npm test
 ```
 
 Runs style-check, build, and unit tests.
-
-<center>Made with ❤️ for and by the WinCC OA community</center>
-
