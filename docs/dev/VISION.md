@@ -1,4 +1,14 @@
-# Development Vision - vs-code extenstion to ... WinCC OA
+# Development vision
+
+Canonical product vision: [../VISION.md](../VISION.md).
+
+## Goals
+
+- Keep the classic parser aligned with CTRL oaLogs + logviewer behavior
+- Prefer unit tests with small fixtures over host WinCC OA installs
+- Stable public JSON field names for CLI and library consumers
+
+---
 
 ## 🎯 Vision Statement
 

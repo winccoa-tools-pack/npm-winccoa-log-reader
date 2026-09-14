@@ -1,15 +1,25 @@
 /**
- * WinCC OA UI PNL/XML Converter
+ * @winccoa-tools-pack/npm-winccoa-log-reader
  *
- * Provides reliable PNL ⇄ XML transformations for WinCC OA UI panels
- * using the WCCOAui manager under the hood.
+ * Parse classic WinCC OA logs (PVSS_II.log) to structured JSON.
+ * Aligned with CTRL oaLogs LogParserClassic / LogEntry and vscode-winccoa-logviewer.
  */
 
-// Types
-export { ConversionDirection, ConversionOptions, ConversionResult } from './types';
+export type {
+    LogEntry,
+    LogFilterOptions,
+    LogMetadata,
+    LogSeverity,
+    ReadLogOptions,
+    StacktraceEntry,
+} from './types';
 
-// Core converter
-export { PnlXmlConverter } from './converter';
-
-// Convenience API
-export { pnlToXml, xmlToPnl } from './api';
+export {
+    filterEntries,
+    matchesFilter,
+    normalizeSeverity,
+    parseLogContent,
+    LogParser,
+    readLogFile,
+    readLogText,
+} from './api';

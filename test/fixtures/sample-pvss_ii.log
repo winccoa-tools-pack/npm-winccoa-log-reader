@@ -1,0 +1,11 @@
+﻿WCCOAui (1), 2026.03.20 10:15:30.123, SYS, INFO, 0, UI started
+WCCOActrl (2), 2026.03.20 10:15:31.456, CTRL, WARNING, 42/ctrl, Connection slow
+  Script: scripts/demo.ctl
+  Library: libs/helpers.ctl
+  Line: 88
+WCCOActrl (2), 2026.03.20 10:15:32.001, CTRL, ERROR, 5/ctrl, Uncaught exception
+  Stacktrace:
+  0: main at scripts/demo.ctl:12
+  1: run at scripts/libs/runner.ctl:40
+WCCOAdata (0), 2026.03.20 10:15:33.999, SYS, SEVERE, 99, Disk almost full
+WCCOAev (0), 2026.03.20 10:15:34.111, SYS, DEBUG, 1, heartbeat

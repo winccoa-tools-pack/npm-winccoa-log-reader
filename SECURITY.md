@@ -28,3 +28,5 @@ If you discover a security vulnerability in any project within the WinCC OA Tool
 ## Acknowledgements
 
 - Reporters who follow responsible disclosure may be acknowledged in the project security advisory and/or `SECURITY.md`, unless they request anonymity.
+
+<center>Made with ❤️ for and by the WinCC OA community</center>

@@ -16,3 +16,5 @@ Code style:
 - Add tests for significant logic changes.
 
 Maintainers will review PRs and may request changes. Thanks!
+
+<center>Made with ❤️ for and by the WinCC OA community</center>

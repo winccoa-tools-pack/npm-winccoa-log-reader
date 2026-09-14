@@ -1,51 +1,33 @@
-import { PnlXmlConverter } from './converter';
-import { ConversionDirection, ConversionOptions, ConversionResult } from './types';
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { filterEntries } from './filter';
+import { parseLogContent } from './parser';
+import type { LogEntry, LogFilterOptions, ReadLogOptions } from './types';
+
+export { LogParser, parseLogContent, normalizeSeverity } from './parser';
+export { filterEntries, matchesFilter } from './filter';
 
 /**
- * Shared converter instance used by the convenience functions.
+ * Read a classic WinCC OA log file and return parsed entries (optionally filtered).
  */
-const converter = new PnlXmlConverter();
-
-/**
- * Convert a WinCC OA .pnl panel file (or directory of panels) to XML.
- *
- * This is a convenience wrapper around {@link PnlXmlConverter.convert}
- * with the direction pre-set to PNL → XML.
- *
- * @param options - Conversion options (version, inputPath, etc.)
- * @returns Conversion result
- *
- * @example
- * ```ts
- * const result = await pnlToXml({
- *     version: '3.20',
- *     inputPath: 'panels/myPanel.pnl',
- * });
- * console.log(result.success); // true
- * ```
- */
-export async function pnlToXml(options: ConversionOptions): Promise<ConversionResult> {
-    return converter.convert(options, ConversionDirection.PNL_TO_XML);
+export function readLogFile(options: ReadLogOptions): LogEntry[] {
+    const encoding = options.encoding ?? 'utf8';
+    const resolved = path.resolve(options.filePath);
+    const content = fs.readFileSync(resolved, { encoding });
+    const sourceFile = path.basename(resolved);
+    const entries = parseLogContent(content, sourceFile);
+    return filterEntries(entries, options.filter);
 }
 
 /**
- * Convert a WinCC OA XML file (or directory of XML files) back to .pnl.
- *
- * This is a convenience wrapper around {@link PnlXmlConverter.convert}
- * with the direction pre-set to XML → PNL.
- *
- * @param options - Conversion options (version, inputPath, etc.)
- * @returns Conversion result
- *
- * @example
- * ```ts
- * const result = await xmlToPnl({
- *     version: '3.20',
- *     inputPath: 'panels/myPanel.xml',
- * });
- * console.log(result.success); // true
- * ```
+ * Parse log text already in memory.
  */
-export async function xmlToPnl(options: ConversionOptions): Promise<ConversionResult> {
-    return converter.convert(options, ConversionDirection.XML_TO_PNL);
+export function readLogText(
+    content: string,
+    filter?: LogFilterOptions,
+    sourceFile?: string,
+): LogEntry[] {
+    const entries = parseLogContent(content, sourceFile);
+    return filterEntries(entries, filter);
 }

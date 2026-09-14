@@ -1,9 +1,17 @@
 {
-  "name": "@winccoa-tools-pack/npm-winccoa-template",
-  "version": "0.2.0",
-  "description": "Template for WinCC OA npm packages",
+  "name": "@winccoa-tools-pack/npm-winccoa-log-reader",
+  "version": "0.1.0",
+  "description": "CLI and library to parse classic WinCC OA logs (PVSS_II.log) into structured JSON",
   "author": "winccoa-tools-pack",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/winccoa-tools-pack/npm-winccoa-log-reader.git"
+  },
+  "homepage": "https://github.com/winccoa-tools-pack/npm-winccoa-log-reader#readme",
+  "bugs": {
+    "url": "https://github.com/winccoa-tools-pack/npm-winccoa-log-reader/issues"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
@@ -25,7 +33,7 @@
     }
   },
   "bin": {
-    "winccoa-pnl-xml": "./dist/cjs/cli.js"
+    "winccoa-log-reader": "./dist/cjs/cli.js"
   },
   "files": [
     "dist"
@@ -50,26 +58,20 @@
     "test:integration": "node --import tsx scripts/run-node-tests.ts test/integration",
     "ci:integration": "npm ci && npm run build && npm run test:integration"
   },
-  "dependencies": {
-    "@winccoa-tools-pack/npm-winccoa-core": "^0.2.6"
-  },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/node": "^25.6.2",
-    "eslint": "^10.3.0",
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^22.15.0",
+    "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
-    "globals": "^17.7.0",
-    "markdownlint": "^0.41.0",
+    "globals": "^17.12.0",
+    "markdownlint": "^0.41.1",
     "markdownlint-cli": "^0.49.1",
-    "prettier": "^3.0.0",
+    "prettier": "^3.9.6",
     "ts-node": "^10.9.1",
-    "tsx": "^4.22.1",
-    "typescript": "^5.2.0",
-    "typescript-eslint": "^8.57.2"
-  },
-  "config": {
-    "winccoaImage": "mpokornyetm/winccoa-tools-pack-npm-winccoa-core:npm-winccoa-core"
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.0"
   },
   "engines": {
     "node": ">=20"
