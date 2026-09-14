@@ -1,6 +1,6 @@
 {
   "name": "@winccoa-tools-pack/npm-winccoa-log-reader",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CLI and library to parse classic WinCC OA logs (PVSS_II.log) into structured JSON",
   "author": "winccoa-tools-pack",
   "license": "MIT",
