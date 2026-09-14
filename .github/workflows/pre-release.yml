@@ -4,7 +4,6 @@ on:
     workflow_run:
         workflows:
             - "CI/CD Pipeline"
-            - "Integration Tests - WinCC OA"
         types:
             - completed
         branches:
@@ -42,13 +41,13 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Use Node.js 20.x
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v7
               with:
                   node-version: 20.x
                   cache: "npm"

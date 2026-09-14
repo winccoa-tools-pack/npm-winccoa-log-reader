@@ -1,0 +1,66 @@
+WCCOActrl    (0), 2026.09.14 07:56:33.644, SYS,  INFO,        1, Manager Start, PROJ, TfCustomizedSquirt, V 3.21 - 3.21.3 platform Linux x86_64 linked at May 12 2026 21:23:41 (087c0283f3edc8f7a9e0585862e5d540d597a3b7)
+WCCOActrl    (0), 2026.09.14 07:56:33.690, SYS,  INFO,        1, Manager Start, testRunner.ctl
+WCCOActrl    (0), 2026.09.14 07:56:33.882, CTRL, INFO,        2/tfProjectGlobal, Global project registration completed successfully., /__w/winccoa-native-gui-test-framework/winccoa-native-gui-test-framework/tests/WinCC_OA_Test/Projects/Global/
+WCCOActrl    (0), 2026.09.14 07:56:33.888, CTRL, SEVERE,     54, Unexpected state, Could not register the project /__w/winccoa-native-gui-test-framework/winccoa-native-gui-test-framework/src/Squirt/ / Squirt, 
+	void ProjEnvErrorHandler::severe(const string &msg, int code = 54) at classes/projectEnvironment/ProjEnvErrorHandler.ctl:68
+	int ProjEnvProject::registerProj() at classes/projectEnvironment/ProjEnvProject.ctl:1009
+	int HookTfTestRunner::setupEnvironment() at classes/testFramework/HookTfTestRunner.ctl:63
+	int TfTestRunner::onStart() at classes/testFramework/TfTestRunner.ctl:247
+	void main(string opts = "") at /opt/WinCC_OA/3.21/TestFramework_3.21/scripts/testRunner.ctl:78
+WCCOActrl    (0), 2026.09.14 07:56:33.886, CTRL, WARNING,    55/pv2admin, Installation directory for project Squirt not found, /__w/winccoa-native-gui-test-framework/winccoa-native-gui-test-framework/src/Squirt/, 
+    Script: /opt/WinCC_OA/3.21/TestFramework_3.21/scripts/testRunner.ctl
+    Library: /opt/WinCC_OA/3.21/scripts/libs/classes/projectEnvironment/ProjEnvProject.ctl
+    Line: 1005, paRegProj
+WCCOActrl    (0), 2026.09.14 07:56:33.890, CTRL, INFO,      100/tfTestRun, Test run 'Regression-tests' contains children 'unit' and will start them.
+WCCOActrl    (0), 2026.09.14 07:56:33.890, CTRL, INFO,      101/tfTestRun, Test run 'unit' contains test suites 'suite_unit/' and will start them.
+WCCOActrl    (0), 2026.09.14 07:56:33.891, CTRL, INFO,      102/tfTestProj, Loading configuration file '/__w/winccoa-native-gui-test-framework/winccoa-native-gui-test-framework/tests/WinCC_OA_Test/TestSuites/suite_unit/testProj.unit.config'.
+WCCOActrl    (0), 2026.09.14 07:56:33.892, CTRL, WARNING,    81, Syntax error, 
+    Script: /opt/WinCC_OA/3.21/TestFramework_3.21/scripts/testRunner.ctl
+    Library: /opt/WinCC_OA/3.21/scripts/libs/classes/json/JsonFile.ctl
+    Line: 90, jsonDecode, Invalid value.
+WCCOActrl    (0), 2026.09.14 07:56:33.892, CTRL, WARNING,    81, Syntax error, 
+    Script: /opt/WinCC_OA/3.21/TestFramework_3.21/scripts/testRunner.ctl
+    Library: /opt/WinCC_OA/3.21/scripts/libs/classes/json/JsonFile.ctl
+    Line: 90, jsonDecode, Invalid value.
+WCCOActrl    (0), 2026.09.14 07:56:33.892, CTRL, WARNING,    54, Unexpected state, Syntax error in JSON file: /__w/winccoa-native-gui-test-framework/winccoa-native-gui-test-framework/tests/WinCC_OA_Test/TestSuites/suite_unit/testProj.unit.config, encoding: 'UTF-8', 
+content
+{
+  "FILE_VERSION":"1.0",
+  "ID":"Unit",
+  "NAME":"Unit tests for ctrl code",
+  "SUB_PROJS": [
+    "sub_unit"
+  ],
+  "PACK_SEL" : 2,
+  "TEST_MANAGERS":[
+    { "MANAGER_OPTIONS":"tests/libs/fileSys.ctl -n" },
+  ]
+}
+WCCOActrl    (0), 2026.09.14 07:56:33.892, CTRL, SEVERE,    103/tfTestProj, Cannot load configuration file '/__w/winccoa-native-gui-test-framework/winccoa-native-gui-test-framework/tests/WinCC_OA_Test/TestSuites/suite_unit/testProj.unit.config'.
+WCCOActrl    (0), 2026.09.14 07:56:33.892, CTRL, INFO,        0, Test result of the test-suite 'suite_unit' (Unit tests for ctrl code):
+  Duration: 0.001 [s.ms]
+  Count of test projects: 0
+WCCOActrl    (0), 2026.09.14 07:56:33.892, CTRL, WARNING,    54, Unexpected state, The test suite 'suite_unit' (Unit tests for ctrl code) executions failed. Error-code: -1. See also previous logs.
+WCCOActrl    (0), 2026.09.14 07:56:33.892, CTRL, INFO,      105/tfTestRun, Test run 'unit' completed successfully.
+WCCOActrl    (0), 2026.09.14 07:56:33.892, CTRL, INFO,      105/tfTestRun, Test run 'Regression-tests' completed successfully.
+WCCOActrl    (0), 2026.09.14 07:56:33.892, CTRL, SEVERE,      5/ctrl, Location of the following log entry: 
+    Script: /opt/WinCC_OA/3.21/TestFramework_3.21/scripts/testRunner.ctl
+    Library: /opt/WinCC_OA/3.21/scripts/libs/pa.ctl
+    Line: 1757
+WCCOActrl    (0), 2026.09.14 07:56:33.892, SYS,  SEVERE,      6/pa, paDeleteProjExtend, Project 'Squirt' does not exist
+WCCOActrl    (0), 2026.09.14 07:56:33.893, CTRL, SEVERE,     54, Unexpected state, Could not unregister the project
+	Project ID: Squirt
+	Name: Squirt
+	Install directory: /__w/winccoa-native-gui-test-framework/winccoa-native-gui-test-framework/src/Squirt/
+	Version: 3.21, 
+	void ProjEnvErrorHandler::severe(const string &msg, int code = 54) at classes/projectEnvironment/ProjEnvErrorHandler.ctl:68
+	int ProjEnvProject::unregisterProj() at classes/projectEnvironment/ProjEnvProject.ctl:1036
+	void HookTfTestRunner::onExit(const anytype &exitCode) at classes/testFramework/HookTfTestRunner.ctl:70
+	void main(string opts = "") at /opt/WinCC_OA/3.21/TestFramework_3.21/scripts/testRunner.ctl:92
+WCCOActrl    (0), 2026.09.14 07:56:33.893, SYS,  INFO,        1/oaUnit_errors, (OK) Testcase 'WinCC_OA_Test_Validation' passed, 
+  Note: verify exit code
+  StackTrace: 
+	void HookTfTestRunner::onExit(const anytype &exitCode) at classes/testFramework/HookTfTestRunner.ctl:71
+	void main(string opts = "") at /opt/WinCC_OA/3.21/TestFramework_3.21/scripts/testRunner.ctl:92
+WCCOActrl    (0), 2026.09.14 07:56:33.893, CTRL, INFO,        1/tfTestRunner, Test runner completed successfully.
+WCCOActrl    (0), 2026.09.14 07:56:33.904, SYS,  INFO,        2, Manager Stop
