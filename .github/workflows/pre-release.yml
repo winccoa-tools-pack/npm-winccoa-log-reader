@@ -1,4 +1,4 @@
-﻿name: Pre-Release (Develop)
+name: Pre-Release (Develop)
 
 on:
     workflow_run:
@@ -79,13 +79,13 @@ jobs:
 
                     if echo "$RECENT_COMMITS" | grep -qi "beta\|release candidate\|rc"; then
                       PRE_RELEASE_TYPE="beta"
-                      echo "Ã°Å¸Å¡â‚¬ Beta release detected from commits"
+                      echo "🚀 Beta release detected from commits"
                     elif echo "$RECENT_COMMITS" | grep -qi "release\|stable"; then
                       PRE_RELEASE_TYPE="rc"
-                      echo "Ã°Å¸Å½Â¯ Release candidate detected from commits"
+                      echo "🎯 Release candidate detected from commits"
                     else
                       PRE_RELEASE_TYPE="alpha"
-                      echo "Ã°Å¸Â§Âª Alpha pre-release (default for develop)"
+                      echo "🧪 Alpha pre-release (default for develop)"
                     fi
                   fi
 
@@ -113,15 +113,15 @@ jobs:
 
                   # Create tag locally (delete if exists)
                   if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
-                    echo "Ã¢Å¡Â Ã¯Â¸Â Tag v$NEW_VERSION already exists, deleting it first"
+                    echo "⚠️ Tag v$NEW_VERSION already exists, deleting it first"
                     git tag -d "v$NEW_VERSION"
                   fi
                   git tag "v$NEW_VERSION"
-                  echo "Ã°Å¸â€œÅ’ Created pre-release tag: v$NEW_VERSION"
+                  echo "📌 Created pre-release tag: v$NEW_VERSION"
 
                   # Stage package.json changes
                   git add package.json
-                  echo "Ã°Å¸â€œÂ Pre-release version updated"
+                  echo "📝 Pre-release version updated"
 
             - name: Generate Pre-Release Changelog
               id: changelog
@@ -129,7 +129,7 @@ jobs:
                   VERSION="${{ steps.release.outputs.version }}"
 
                   # Generate changelog from recent commits
-                  echo "## Ã°Å¸Â§Âª Pre-Release v$VERSION" > temp_changelog.md
+                  echo "## 🧪 Pre-Release v$VERSION" > temp_changelog.md
                   echo "" >> temp_changelog.md
                   echo "**Pre-release from develop branch**" >> temp_changelog.md
                   echo "" >> temp_changelog.md
@@ -148,7 +148,7 @@ jobs:
 
                   echo "" >> temp_changelog.md
                   echo "" >> temp_changelog.md
-                  echo "### Ã°Å¸â€Â Testing Notes:" >> temp_changelog.md
+                  echo "### 🔍 Testing Notes:" >> temp_changelog.md
                   echo "- This is a **pre-release** version from the develop branch" >> temp_changelog.md
                   echo "- Use for testing and validation purposes only" >> temp_changelog.md
                   echo "- Report issues at: https://github.com/winccoa-tools-pack/${{ github.repository }}/issues/" >> temp_changelog.md
@@ -173,18 +173,18 @@ jobs:
                   # This avoids branch protection conflicts since we don't need to commit to develop
                   # The version bump is only in package.json for building the release artifact
 
-                  echo "Ã¢â€žÂ¹Ã¯Â¸Â  Pre-release version $VERSION is tag-only (not committed to develop)"
-                  echo "Ã°Å¸â€œÅ’ This prevents branch protection conflicts"
-                  echo "Ã¢Å“â€¦ The develop branch package.json remains unchanged"
+                  echo "ℹ️  Pre-release version $VERSION is tag-only (not committed to develop)"
+                  echo "📌 This prevents branch protection conflicts"
+                  echo "✅ The develop branch package.json remains unchanged"
 
                   # Push tag only (no commit to develop needed)
                   if git ls-remote --tags origin "v$VERSION" | grep -q "v$VERSION"; then
-                    echo "Ã¢Å¡Â Ã¯Â¸Â  Tag v$VERSION exists remotely, force pushing"
+                    echo "⚠️  Tag v$VERSION exists remotely, force pushing"
                     git push --force origin "v$VERSION"
                   else
                     git push origin "v$VERSION"
                   fi
-                  echo "Ã¢Å“â€¦ Pushed pre-release tag: v$VERSION"
+                  echo "✅ Pushed pre-release tag: v$VERSION"
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -192,7 +192,7 @@ jobs:
               run: npm run build
 
             - name: Upload Package Artifact
-              uses: actions/upload-artifact@v6
+              uses: actions/upload-artifact@v7
               with:
                   name: pre-release-${{ steps.release.outputs.version }}
                   path: |
@@ -203,24 +203,24 @@ jobs:
                   retention-days: 14
 
             - name: Create GitHub Pre-Release
-              uses: softprops/action-gh-release@v2
+              uses: softprops/action-gh-release@v3
               with:
                   tag_name: "v${{ steps.release.outputs.version }}"
-                  name: "Ã°Å¸Â§Âª Pre-Release v${{ steps.release.outputs.version }}"
+                  name: "🧪 Pre-Release v${{ steps.release.outputs.version }}"
                   target_commitish: develop
                   body: |
                       ${{ steps.changelog.outputs.changelog }}
 
-                      ### Ã¢Å¡Â Ã¯Â¸Â Pre-Release Warning
+                      ### ⚠️ Pre-Release Warning
 
                       This is a **pre-release** version automatically generated from the `develop` branch.
 
                       **Use for testing purposes only:**
-                      - Ã¢Å“â€¦ Test new features and changes
-                      - Ã¢Å“â€¦ Validate functionality before production
-                      - Ã¢ÂÅ’ Not recommended for production use
+                      - ✅ Test new features and changes
+                      - ✅ Validate functionality before production
+                      - ❌ Not recommended for production use
 
-                      ### Ã°Å¸â€œÂ¦ Installation
+                      ### 📦 Installation
 
                       Install the pre-release version:
 
@@ -234,10 +234,10 @@ jobs:
                       yarn add @winccoa-tools-pack/${{ github.repository }}@${{ steps.release.outputs.version }}
                       ```
 
-                      ### Ã°Å¸â€â€ž Feedback
+                      ### 🔄 Feedback
 
-                      - [Ã°Å¸Ââ€º Report Issues](https://github.com/${{ github.repository }}/issues)
-                      - [Ã°Å¸â€™Â¡ Suggest Features](https://github.com/${{ github.repository }}/issues/new?template=feature_request.md)
+                      - [🐛 Report Issues](https://github.com/${{ github.repository }}/issues)
+                      - [💡 Suggest Features](https://github.com/${{ github.repository }}/issues/new?template=feature_request.md)
 
                   draft: false
                   prerelease: true
@@ -247,7 +247,7 @@ jobs:
 
             - name: Delete Old Pre-Releases
               run: |
-                  echo "Ã°Å¸Â§Â¹ Cleaning up old pre-releases..."
+                  echo "🧹 Cleaning up old pre-releases..."
 
                   # Get all pre-releases sorted by creation date (newest first)
                   # Use jq to sort by createdAt timestamp, not alphabetically
@@ -257,14 +257,14 @@ jobs:
                   OLD_PRERELEASES=$(echo "$PRERELEASES" | tail -n +2)
 
                   if [ -z "$OLD_PRERELEASES" ]; then
-                    echo "Ã¢Å“â€¦ No old pre-releases to delete"
+                    echo "✅ No old pre-releases to delete"
                   else
-                    echo "Ã°Å¸â€”â€˜Ã¯Â¸Â  Deleting old pre-releases:"
+                    echo "🗑️  Deleting old pre-releases:"
                     for TAG in $OLD_PRERELEASES; do
                       echo "  - Deleting $TAG"
-                      gh release delete "$TAG" --yes --cleanup-tag || echo "Ã¢Å¡Â Ã¯Â¸Â  Failed to delete $TAG"
+                      gh release delete "$TAG" --yes --cleanup-tag || echo "⚠️  Failed to delete $TAG"
                     done
-                    echo "Ã¢Å“â€¦ Old pre-releases cleaned up, kept only: v${{ steps.release.outputs.version }}"
+                    echo "✅ Old pre-releases cleaned up, kept only: v${{ steps.release.outputs.version }}"
                   fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -277,11 +277,11 @@ jobs:
         steps:
             - name: Success Notification
               run: |
-                  echo "Ã°Å¸Â§Âª Pre-release v${{ needs.pre-release.outputs.version }} created successfully!"
-                  echo "Ã°Å¸â€œÂ¦ Package built and uploaded to GitHub Releases"
-                  echo "Ã°Å¸â€Â Available for testing and validation"
-                  echo "Ã°Å¸â€œÂ Auto-generated from develop branch"
+                  echo "🧪 Pre-release v${{ needs.pre-release.outputs.version }} created successfully!"
+                  echo "📦 Package built and uploaded to GitHub Releases"
+                  echo "🔍 Available for testing and validation"
+                  echo "📝 Auto-generated from develop branch"
                   echo ""
-                  echo "Ã°Å¸â€â€” Pre-release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.pre-release.outputs.version }}"
+                  echo "🔗 Pre-release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.pre-release.outputs.version }}"
                   echo ""
-                  echo "Ã°Å¸Â§Âª Test the pre-release and provide feedback!"
+                  echo "🧪 Test the pre-release and provide feedback!"
