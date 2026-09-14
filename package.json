@@ -1,7 +1,7 @@
 {
-  "name": "@winccoa-tools-pack/npm-winccoa-template",
-  "version": "0.2.0",
-  "description": "Template for WinCC OA npm packages",
+  "name": "@winccoa-tools-pack/npm-winccoa-log",
+  "version": "0.1.0",
+  "description": "WinCC OA log parser, file watcher, and CLI — PVSS_II.log format reader",
   "author": "winccoa-tools-pack",
   "license": "MIT",
   "main": "dist/cjs/index.js",
@@ -12,20 +12,10 @@
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js",
       "types": "./dist/index.d.ts"
-    },
-    "./utils/*": {
-      "import": "./dist/esm/utils/*.js",
-      "require": "./dist/cjs/utils/*.js",
-      "types": "./dist/utils/*.d.ts"
-    },
-    "./types/*": {
-      "import": "./dist/esm/types/*.js",
-      "require": "./dist/cjs/types/*.js",
-      "types": "./dist/types/*.d.ts"
     }
   },
   "bin": {
-    "winccoa-pnl-xml": "./dist/cjs/cli.js"
+    "winccoa-log": "./dist/cjs/cli.js"
   },
   "files": [
     "dist"

@@ -1,0 +1,4 @@
+version 1
+
+auth "" ""
+#Manager       | Start  | SecKill | Restart# | ResetMin | Options

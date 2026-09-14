@@ -1,72 +1,105 @@
-/**
- * Conversion direction for PNL ⇄ XML transformations.
- */
-export enum ConversionDirection {
-    /** Convert .pnl panel files to .xml */
-    PNL_TO_XML = 'XML',
-    /** Convert .xml files back to .pnl panels */
-    XML_TO_PNL = 'PNL',
+// ── Core log types ────────────────────────────────────────────────────────────
+
+/** Severity levels used by WinCC OA PVSS log entries. */
+export type LogSeverity = 'INFO' | 'WARNING' | 'FATAL' | 'SEVERE' | 'DEBUG' | 'OTHER';
+
+/** Reference to a source file position (used e.g. in VS Code extension link handling). */
+export interface LogFileRef {
+    path: string;
+    line?: number;
+}
+
+/** One frame in a CTRL stacktrace block. */
+export interface StacktraceEntry {
+    index: number;
+    functionName: string;
+    filePath: string;
+    line?: number;
+}
+
+/** Structured metadata parsed from log continuation lines. */
+export interface LogMetadata {
+    /** `Script: <name>` continuation line. */
+    script?: string;
+    /** `Library: <path>` continuation line. */
+    library?: string;
+    /** `Line: <n>` continuation line. */
+    line?: number;
+    /** Parsed `Stacktrace:` block. */
+    stacktrace?: StacktraceEntry[];
+    /** Any other unrecognised continuation text. */
+    raw?: string;
 }
 
 /**
- * Options for the PNL ⇄ XML conversion process.
+ * A single parsed WinCC OA log event.
+ *
+ * Field names are intentionally identical to those in the VS Code logviewer
+ * extension's logEvent.ts — migration is a single import-line swap.
  */
-export interface ConversionOptions {
+export interface LogEvent {
+    /** Manager identifier, e.g. `WCCOActrl(1)` or `WCCILdataSQLite(0)`. */
+    identifier: string;
+    /** Raw timestamp string: `YYYY.MM.DD HH:mm:ss.SSS`. */
+    timestamp: string;
+    /** Log scope / error type, e.g. `SYS`, `CTRL`, `IMPL`, `PARAM`. */
+    scope: string;
+    severity: LogSeverity;
+    /** Main message / error text. */
+    message: string;
     /**
-     * WinCC OA version to use (e.g., '3.20').
-     * Required to locate the correct WCCOAui executable.
-     */
-    version: string;
-
-    /**
-     * Path to the panel file (.pnl) or directory to convert.
+     * Error code (and optional catalog) extracted from the log line.
+     * Examples: `"1"`, `"20/pmon"`, `"13/pmon"`, `"2/http"`.
      *
-     * WCCOAui resolves this path **relative to the project's `panels/`
-     * directory**, so typically a bare filename like `"about.pnl"` or a
-     * sub-path like `"sub/myPanel.pnl"` is expected — not an absolute path.
+     * The CTL LogEntry class exposes these as separate errorCode +
+     * errorCatalog fields; here they are kept as a single string to
+     * preserve the original log format without information loss.
      */
-    inputPath: string;
-
-    /**
-     * Whether to overwrite existing output files.
-     * Maps to the `-o` flag of the UI manager.
-     * @default false
-     */
-    overwrite?: boolean;
-
-    /**
-     * Path to the WinCC OA project config file.
-     * Allows WCCOAui to locate a valid project context without registration.
-     * Maps to the `-config` flag of the UI manager.
-     */
-    configPath?: string;
-
-    /**
-     * Timeout in milliseconds for the conversion process.
-     * @default 60000
-     */
-    timeout?: number;
+    msgnum?: string;
+    /** Present only when continuation lines were parsed. */
+    metadata?: LogMetadata;
+    /** All raw source lines that make up this event (first + continuations). */
+    rawLines: string[];
+    /** Absolute path of the source log file, set by reader / watcher. */
+    sourceFile?: string;
 }
 
-/**
- * Result of a PNL ⇄ XML conversion operation.
- */
-export interface ConversionResult {
-    /** Whether the conversion completed successfully (exit code 0). */
-    success: boolean;
+// ── Reader options / result ────────────────────────────────────────────────────
 
-    /** Process exit code. */
-    exitCode: number;
+export interface LogReadOptions {
+    /**
+     * Only return events with a timestamp >= this value.
+     * Accepts a Date object or a raw PVSS timestamp string
+     * YYYY.MM.DD HH:mm:ss.SSS.
+     */
+    sinceTimestamp?: Date | string;
+    /** Return only the last N events (applied after all other filters). */
+    lastN?: number;
+    /** Restrict to specific severity levels. */
+    filterSeverity?: LogSeverity[];
+    /** Restrict to specific scope values (e.g. ['SYS', 'CTRL']). */
+    filterScope?: string[];
+}
 
-    /** Standard output captured from the UI manager process. */
-    stdout: string;
+export interface LogReadResult {
+    events: LogEvent[];
+    filePath: string;
+    count: number;
+}
 
-    /** Standard error output captured from the UI manager process. */
-    stderr: string;
+// ── Watcher options ────────────────────────────────────────────────────────────
 
-    /** The input path that was converted. */
-    inputPath: string;
-
-    /** The conversion direction used. */
-    direction: ConversionDirection;
+export interface LogWatcherOptions {
+    /** One or more absolute paths to .log files to watch. */
+    files: string[];
+    /** Only emit events matching these severities. */
+    filterSeverity?: LogSeverity[];
+    /** Only emit events matching these scope values. */
+    filterScope?: string[];
+    /**
+     * Optional debug callback — receives internal trace messages.
+     * Replaces the VS Code ExtensionOutputChannel dependency used in the
+     * logviewer extension.
+     */
+    debugCallback?: (msg: string) => void;
 }
