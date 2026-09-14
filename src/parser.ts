@@ -1,4 +1,4 @@
-import type { LogEntry, LogMetadata, LogSeverity, StacktraceEntry } from './types';
+import type { LogEntry, LogMetadata, LogSeverity } from './types';
 
 /**
  * Streaming parser for classic WinCC OA PVSS_II.log lines.
