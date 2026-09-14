@@ -58,28 +58,28 @@
 
 ### Test Environment
 
-- WinCC OA Version:
 - Operating System:
+- Node.js version:
 
 ### Test Cases
 
-- [ ] Manual testing completed
-- [ ] Unit tests pass
-- [ ] Integration tests pass
+- [ ] Manual CLI smoke (`node dist/cjs/cli.js …` or `npm run test:integration`)
+- [ ] Unit tests pass (`npm run test:unit`)
+- [ ] Integration tests pass (`npm run test:integration`)
+- [ ] Style gate passes (`npm run style-check`)
 - [ ] No regressions in existing functionality
 
-### WinCC OA Compatibility
+### Log-reader notes
 
-- [ ] Changes are compatible with WinCC OA project structure
-- [ ] pvssInst.conf parsing still works correctly
-- [ ] Project configuration files are handled properly
-- [ ] pmon integration functions correctly
+- [ ] Classic PVSS_II fixtures still parse (`test/fixtures/*.log`)
+- [ ] Filters / CLI flags behave as documented
+- [ ] No WinCC OA install required for this package’s tests
 
 ### Test Steps
 
-1. do this
-2. and that
-3. and it works as proposed
+1. `npm ci && npm test`
+2. `npm run test:integration`
+3. Optional: run CLI against a real `PVSS_II.log`
 
 ## 📝 **Checklist**
 

@@ -1,80 +1,37 @@
-# CI + Integration (WinCC OA)
+# CI + integration (this package)
 
-This repository runs a standard Node/TypeScript CI pipeline on GitHub-hosted runners and (optionally) runs integration tests inside a WinCC OA Docker container.
+Full pipeline behavior is defined by the workflows under `.github/workflows/`,
+not by a long narrative doc. This page keeps only **package-local** notes.
 
-## Workflows
+## Workflows (source of truth)
 
-### CI/CD Pipeline
+| Workflow | Role |
+| -------- | ---- |
+| `.github/workflows/ci-cd.yml` | Lint, format, unit tests, host integration (CLI + log fixtures) |
+| Other `.github/workflows/*` | Git Flow, release, labels, settings (see [GITFLOW_WORKFLOW.md](./GITFLOW_WORKFLOW.md)) |
 
-Workflow: `.github/workflows/ci-cd.yml`
+## Local / agent guidance
 
-- Triggers:
-  - `push` to `main`, `develop`, and `release/**`
-  - `pull_request` to `main` and `develop`
-- What it does:
-  - `npm ci`
-  - `npm run lint` + `npm run lint:md`
-  - `npm run format:check`
-  - matrix tests via `npm run test:unit`
+- Contributor notes: [CONTRIBUTING.md](../../CONTRIBUTING.md)
+- Product scope: [docs/VISION.md](../VISION.md)
 
-### Integration Tests - WinCC OA
+## This package’s CI knobs
 
-Integration tests are part of the CI/CD workflow.
+| Item | Value / notes |
+| ---- | ------------- |
+| Unit | `npm run test:unit` |
+| Integration | `npm run test:integration` / `npm run ci:integration` |
+| Fixtures | `test/fixtures/*.log` (classic PVSS_II samples) |
+| WinCC OA Docker | **Not required** — pure file parse |
 
-Workflow: `.github/workflows/ci-cd.yml` (job: `Integration Tests - WinCC OA`)
+Integration runs on the GitHub-hosted runner (Node only). There is no
+`test/fixtures/projects/runnable` project fixture and no `config.winccoaImage`.
 
-- Triggers:
-  - same triggers as `CI/CD Pipeline`
-- What it does:
-  - pulls a WinCC OA Docker image
-  - runs the repo inside the container
-  - executes `npm run ci:integration` (which runs `npm ci`, `npm run build`, and `npm run test:integration`)
+## CLI in automation
 
-By default, the integration job is a no-op unless an image is configured.
+```shell
+node dist/cjs/cli.js path/to/PVSS_II.log --result-file out/logs.json
+node dist/cjs/cli.js path/to/PVSS_II.log --severity WARNING,FATAL --manager WCCOActrl
+```
 
-## Docker image selection
-
-The integration workflow determines the image like this:
-
-1. If `package.json` defines `config.winccoaImage`, that value is used.
-2. If repository variable `WINCCOA_IMAGE` is set, it overrides the package.json value.
-
-If you publish your own WinCC OA image, set it explicitly in `package.json` to avoid surprises.
-
-## Required secrets (optional)
-
-These are used only for private pulls from Docker Hub:
-
-- `DOCKER_USER`
-- `DOCKER_PASSWORD`
-
-If you reference a public image, the workflow can work without credentials.
-
-## Enabling integration in a new repo
-
-Set one of the following:
-
-- `package.json` → `config.winccoaImage`
-- Repository variable `WINCCOA_IMAGE`
-
-## Manual runs (recommended for first setup)
-
-From the Actions tab:
-
-1. Run **CI/CD Pipeline** once to validate the build.
-2. Run **Integration Tests - WinCC OA** via `Run workflow`.
-
-## Troubleshooting
-
-- `npm ci` fails: ensure `package-lock.json` matches `package.json` and commit the updated lockfile.
-- Container pull fails: verify your image name (and Docker credentials if private).
-
----
-
-## Quick Links
-
-• [📦 npm package](https://www.npmjs.com/package/@winccoa-tools-pack/npm-winccoa-ui-pnl-xml)
-
----
-
-<center>Made with ❤️ for and by the WinCC OA community</center>
+Exit codes: `0` ok, `1` usage/help, `2` failure. See README.
