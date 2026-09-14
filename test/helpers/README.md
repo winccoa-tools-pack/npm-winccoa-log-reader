@@ -84,3 +84,5 @@ The helper uses test project fixtures located in `test/fixtures/projects/`:
 - `sub-proj/` - A sub-project fixture (not runnable)
 
 Each fixture contains a `config/` directory with WinCC OA configuration files.
+
+<center>Made with ❤️ for and by the WinCC OA community</center>

@@ -1,0 +1,9 @@
+﻿  This plugin does not support createPlatformOpenGLContext!
+  WCCOAui      (0), 2026.09.13 22:18:57.650,	WinCC_OA,	WARNING: Running as root is a security risk and not recommended.
+  WCCOAui      (0), 2026.09.13 22:18:57.648: "/workspace/src/Squirt/config/config" is not a registered config file !
+  WCCOAui      (0), 2026.09.13 22:18:57.648: could NOT get project name from -proj, env PVSS_II_PROJ, -config or PVSS_II parameters
+  
+  WCCOAui      (0), 2026.09.13 22:18:57.651, SYS,  INFO,        1, Manager Start, V 3.21 - 3.21.3 platform Linux x86_64 linked at May 12 2026 21:23:41 (087c0283f3edc8f7a9e0585862e5d540d597a3b7)
+  WCCOAui      (0), 2026.09.13 22:18:57.651, SYS,  SEVERE,     15/pv2admin, The project  is not yet registered.
+  WCCOAui      (0), 2026.09.13 22:18:57.651, SYS,  INFO,        2, Manager Stop
+  Syntax check failed with exit code 1.

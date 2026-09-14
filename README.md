@@ -1,92 +1,94 @@
----
-Minimal starter template for creating shared WinCC OA NPM libraries
-THIS IS AN EXAMPLE README
----
+# npm-winccoa-log-reader
 
+<!-- markdownlint-disable MD033 -->
+<div align="center">
 
-# WinCC OA UI PNL/XML Converter
+[![npm version](https://img.shields.io/npm/v/@winccoa-tools-pack/npm-winccoa-log-reader.svg?label=npm)](https://www.npmjs.com/package/@winccoa-tools-pack/npm-winccoa-log-reader)
+![License](https://img.shields.io/github/license/winccoa-tools-pack/npm-winccoa-log-reader)
+[![CI/CD](https://github.com/winccoa-tools-pack/npm-winccoa-log-reader/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/winccoa-tools-pack/npm-winccoa-log-reader/actions/workflows/ci-cd.yml)
+[![Release](https://github.com/winccoa-tools-pack/npm-winccoa-log-reader/actions/workflows/release.yml/badge.svg)](https://github.com/winccoa-tools-pack/npm-winccoa-log-reader/actions/workflows/release.yml)
 
-A lightweight developer tool for SIMATIC WinCC Open Architecture projects, providing reliable PNL ⇄ XML transformations for UI panels.
-This package is part of the modular winccoa-tools-pack ecosystem, which delivers modern development tooling,
-reusable libraries, and VS Code extensions for WinCC OA engineers.
-[github.com](https://github.com/winccoa-tools-pack)
+</div>
 
-## ✨ Features
+CLI and library to **parse classic WinCC OA logs** (for example `PVSS_II.log`)
+into structured **JSON**.
 
-- **PNL → XML conversion**  
-  Transform classic .pnl UI panel files into structured XML suitable for analysis, automation, and editor tooling.
+Aligned with CTRL `classes/oaLogs` (`LogParserClassic` / `LogEntry`) and the
+parser used by `vscode-winccoa-logviewer`. Pure file parse — no WinCC OA
+installation required.
 
-- **XML → PNL conversion**  
-  Regenerate WinCC OA .pnl files from XML to enable round-trip workflows and external processing.
-
-- **Tooling-friendly design**  
-  Built to integrate with next-generation WinCC OA development tools such as VS Code extensions,
-  reusable workflows, and advanced analysis pipelines,
-  consistent with the overall goals of the winccoa-tools-pack organization.
-
-- **Modern project template**  
-  Generated from the shared npm-winccoa-template to ensure consistent structure, CI/CD, TypeScript setup, linting, and maintainability across the ecosystem.
+See [docs/VISION.md](docs/VISION.md) for scope and field shapes.
 
 ## 📦 Installation
 
 ```shell
-npm install @winccoa-tools-pack/npm-winccoa-ui-pnl-xml
+npm install -g @winccoa-tools-pack/npm-winccoa-log-reader
 ```
 
-Or globally:
+Or run without a global install:
 
 ```shell
-npm install -g @winccoa-tools-pack/npm-winccoa-ui-pnl-xml
+npx @winccoa-tools-pack/npm-winccoa-log-reader --help
 ```
 
-## 🖥 Usage (CLI)
+## CLI
+
+```text
+winccoa-log-reader [options] <logfile>
+```
+
+JSON is the default (best for scripts/CI). Use `--no-json` for a simple TSV
+table. Prefer `--result-file` when you need a clean payload file.
+
+### Options
+
+| Option | Meaning |
+| --- | --- |
+| `--json` / `--no-json` | JSON (default) or TSV |
+| `--result-file <path>` | Write payload to a file |
+| `--severity <list>` | Include priorities (comma-separated) |
+| `--exclude-severity <list>` | Exclude priorities |
+| `--manager <list>` | Include manager names |
+| `--exclude-manager <list>` | Exclude manager names |
+| `--type <list>` | Include error types (`SYS`, `CTRL`, …) |
+| `--exclude-type <list>` | Exclude error types |
+| `--code <list>` | Include error codes |
+| `--exclude-code <list>` | Exclude error codes |
+| `--catalog <list>` | Include error catalogs |
+| `--text <list>` | Include if `errorText` contains substring |
+| `--exclude-text <list>` | Exclude if `errorText` contains substring |
+
+Priorities are normalized: `ERROR` → `FATAL` (logviewer convention).
+
+### Examples
 
 ```shell
-# Convert .pnl → .xml (in-place)
-winccoa-pnl-xml convert pnl-to-xml about.pnl --version 3.20
-
-# Convert .xml → .pnl (in-place)
-winccoa-pnl-xml convert xml-to-pnl about.xml --version 3.20
-
-# Optional flags
-#   --config <path>   Use a specific project config file
-#   --overwrite       Overwrite existing output files
-#   --timeout <ms>    Increase process timeout
+winccoa-log-reader path/to/PVSS_II.log
+winccoa-log-reader PVSS_II.log --severity WARNING,FATAL --result-file out.json
+winccoa-log-reader PVSS_II.log --manager WCCOActrl --text timeout --no-json
 ```
 
-## ⚠️ Important behavior
+### Exit codes
 
-- Conversion is performed by WinCC OA `WCCOAui` and is **in-place** (the input file is rewritten).
-- WinCC OA may create a `.bak` file next to the input.
-- The input passed to `-p` is typically resolved relative to the project’s `panels/` directory.
-  Use `--config` if you need to point the converter at a specific project context.
+| Code | Meaning |
+| --- | --- |
+| 0 | Success |
+| 1 | Usage / help |
+| 2 | Runtime failure |
 
-## 🧩 Usage (API)
+## Library
 
-```typescript
-import { pnlToXml, xmlToPnl } from "@winccoa-tools-pack/npm-winccoa-ui-pnl-xml";
+```ts
+import {
+  readLogFile,
+  parseLogContent,
+  filterEntries,
+} from '@winccoa-tools-pack/npm-winccoa-log-reader';
 
-// Note: WinCC OA performs the conversion in-place and may create a .bak backup.
-// The input path is typically resolved relative to the project’s panels/ directory.
-
-const pnlToXmlResult = await pnlToXml({
-  version: "3.20",
-  inputPath: "about.pnl",
-  // configPath: "C:/path/to/project/config/config",
-  // overwrite: true,
-  // timeout: 120_000,
+const entries = readLogFile({
+  filePath: 'logs/PVSS_II.log',
+  filter: { includeErrorPriority: ['WARNING', 'FATAL'] },
 });
-
-if (!pnlToXmlResult.success) {
-  throw new Error(`Conversion failed (exit ${pnlToXmlResult.exitCode}): ${pnlToXmlResult.stderr}`);
-}
-
-const xmlToPnlResult = await xmlToPnl({
-  version: "3.20",
-  inputPath: "about.xml",
-});
-
-console.log({ pnlToXmlResult, xmlToPnlResult });
 ```
 
 More details: see [docs/USAGE.md](docs/USAGE.md).
@@ -182,6 +184,6 @@ Happy Coding! 🚀
 
 ## Quick Links
 
-[📦 VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=mPokornyETM.wincc-oa-projects)
+---
 
-Made with ❤️ for and by the WinCC OA community
+<center>Made with ❤️ for and by the WinCC OA community</center>
