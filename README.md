@@ -1,5 +1,7 @@
 # npm-winccoa-log-reader
 
+> **Not published to npm yet.** This package is still under development and has no release. Its API and contents may change before the first release. This notice is removed with the first release.
+
 <!-- markdownlint-disable MD033 -->
 <div align="center">
 
