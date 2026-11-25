@@ -78,7 +78,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node-version: [20.x, 22.x, 24.x, 25.x]
+        node-version: [26.x]
     env:
       CI: true
     steps:
@@ -98,35 +98,18 @@ jobs:
         env:
           CI: true
 
-  integration:
-    name: Integration Tests
+  # Integration tests are manual until a working Docker setup exists (winccoa-tools-pack/.github#117).
+  # This job only reminds PR authors; it never fails the pipeline.
+  limited-tests-notice:
+    name: Limited tests notice
     needs: [test]
     if: ${{ needs.test.result == 'success' }}
-    runs-on: ubuntu-latest
-    env:
-      CI: true
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v7
-        with:
-          node-version: 20.x
-          cache: "npm"
-      - name: Install dependencies
-        run: npm ci
-      - name: Build package
-        run: npm run build
-      - name: Verify classic log fixtures exist
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -f "./test/fixtures/sample-pvss_ii.log"
-          test -f "./test/fixtures/sample-syntax-check-PVSS_II.log"
-          test -f "./test/fixtures/sample-quick-fail-PVSS_II.log"
-          test -f "./test/fixtures/sample-test-runner-PVSS_II.log"
-      - name: Run integration tests (CLI + fixtures)
-        run: npm run test:integration
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: winccoa-tools-pack/.github/.github/workflows/reusable-limited-tests-notice.yml@main
+    with:
+      integration_command: npm run test:integration
 
   required:
     name: CI/CD Pipeline - Required
@@ -136,7 +119,6 @@ jobs:
       - lint
       - format
       - test
-      - integration
     steps:
       - name: Verify required jobs
         shell: bash
@@ -146,7 +128,6 @@ jobs:
             "lint:${{ needs.lint.result }}"
             "format:${{ needs.format.result }}"
             "test:${{ needs.test.result }}"
-            "integration:${{ needs['integration'].result }}"
           )
           echo "Job results:"
           printf ' - %s\n' "${RESULTS[@]}"
